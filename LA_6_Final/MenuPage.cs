@@ -13,7 +13,7 @@ namespace LA_6_Final
 {
     public partial class MenuPage : Form
     {
-        private readonly string connectionString = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=C:\Users\zach\Documents\Students.accdb; Persist Security Info=True;";
+        private readonly string connectionString = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=D:\LA_Projects\Lapura_LA6\Students.accdb; Persist Security Info=True;";
 
         public MenuPage()
         {
@@ -287,6 +287,66 @@ namespace LA_6_Final
                 {
                     LoadData();
                 }
+            }
+        }
+
+        private void DeleteBtn_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (lstDetails.SelectedItem == null)
+                {
+                    MessageBox.Show("Please select a record to delete.", "Input Error",
+                                   MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                // Ask user for confirmation before deletion
+                DialogResult result = MessageBox.Show("Are you sure you want to delete this record?",
+                                                     "Confirm Deletion",
+                                                     MessageBoxButtons.YesNo,
+                                                     MessageBoxIcon.Question);
+
+                if (result == DialogResult.Yes)
+                {
+                    string[] selectedData = lstDetails.SelectedItem.ToString().Split(',');
+                    int id = int.Parse(selectedData[0].Trim()); // Extract the ID from the selected item
+
+                    using (OleDbConnection connection = new OleDbConnection(connectionString))
+                    {
+                        connection.Open();
+                        string query = "DELETE FROM Students WHERE Id = @Id";
+                        using (OleDbCommand command = new OleDbCommand(query, connection))
+                        {
+                            command.Parameters.AddWithValue("@Id", id);
+                            int rowsAffected = command.ExecuteNonQuery();
+
+                            if (rowsAffected > 0)
+                            {
+                                MessageBox.Show("Record deleted successfully!", "Success",
+                                               MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            }
+                            else
+                            {
+                                MessageBox.Show("No record was deleted. The record may no longer exist.",
+                                               "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            }
+                        }
+                    }
+
+                    // Refresh the list after deletion
+                    LoadData();
+                }
+            }
+            catch (FormatException)
+            {
+                MessageBox.Show("Could not parse the ID from the selected item.", "Error",
+                               MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred: {ex.Message}", "Error",
+                               MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }
